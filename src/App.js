@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./App.css";
 import Auth from "./components/Auth";
@@ -12,6 +12,8 @@ function App() {
     const isAuth = useSelector((state) => state.auth.isAuth);
     const cart = useSelector((state) => state.cart);
 
+    const [initialRender, setInitialRender] = useState(true);
+
     useEffect(() => {
         const sendRequest = async () => {
             const response = await fetch(
@@ -22,10 +24,32 @@ function App() {
                 }
             );
             const data = await response.json();
+
+            if (!initialRender) {
+                dispatch(
+                    uiActions.showNotification({
+                        open: true,
+                        message: "Request Sent Successfully!!",
+                        type: "success",
+                    })
+                );
+            }
+
+            setInitialRender(false);
         };
 
-        sendRequest();
-    });
+        sendRequest().catch((error) => {
+            console.log(error);
+            // Sending state is unsuccessful
+            dispatch(
+                uiActions.showNotification({
+                    message: "Sent Request to database failed",
+                    type: "error",
+                    open: true,
+                })
+            );
+        });
+    }, [cart]);
 
     return (
         <div className="App">
